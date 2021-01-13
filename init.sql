@@ -1,0 +1,10 @@
+CREATE DATABASE sig;
+
+use sig;
+
+CREATE TABLE accident (
+    id INT(11) UNSIGNED AUTO_INCREMENT PRIMARY KEY,
+    type VARCHAR(30) NOT NULL,
+    address VARCHAR(200) NOT NULL,
+    duration INT(11) NOT NULL
+)

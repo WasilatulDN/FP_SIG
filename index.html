@@ -1,0 +1,362 @@
+<html>
+
+<head>
+  <meta charset="utf-8" />
+  <meta name="viewport" content="initial-scale=1,maximum-scale=1,user-scalable=no" />
+  <!--
+  ArcGIS API for JavaScript, https://js.arcgis.com
+  For more information about the widgets-directions sample, read the original sample description at developers.arcgis.com.
+  https://developers.arcgis.com/javascript/latest/sample-code/widgets-directions/index.html
+  -->
+  <title>Peta Wisata di Kota Batu</title>
+
+  <link rel="stylesheet" href="https://js.arcgis.com/4.18/esri/themes/light/main.css" />
+  <link rel="stylesheet" href="https://maxcdn.bootstrapcdn.com/bootstrap/4.0.0/css/bootstrap.min.css"
+    integrity="sha384-Gn5384xqQ1aoWXA+058RXPxPg6fy4IWvTNh0E263XmFcJlSAwiGgFAW/dAiS6JXm" crossorigin="anonymous">
+
+  <style>
+    html,
+    body,
+    #viewDiv {
+      padding: 0;
+      margin: 0;
+      height: 100%;
+      width: 100%;
+    }
+
+    .esri-component.esri-legend.esri-widget.esri-widget--panel {
+      max-height: 250px;
+    }
+  </style>
+  
+  <script src="https://code.jquery.com/jquery-3.2.1.slim.min.js"
+    integrity="sha384-KJ3o2DKtIkvYIK3UENzmM7KCkRr/rE9/Qpg6aAZGJwFDMVNA/GpGFF93hXpG5KkN"
+    crossorigin="anonymous"></script>
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/popper.js/1.12.9/umd/popper.min.js"
+    integrity="sha384-ApNbgh9B+Y1QKtv3Rn7W3mgPxhU9K/ScQsAP7hUibX39j7fakFPskvXusvfa0b4Q"
+    crossorigin="anonymous"></script>
+  <script src="https://maxcdn.bootstrapcdn.com/bootstrap/4.0.0/js/bootstrap.min.js"
+    integrity="sha384-JZR6Spejh4U02d8jOt6vLEHfe/JQGiRRSQQxSfFWpi1MquVdAyjUar5+76PVCmYl"
+    crossorigin="anonymous"></script>
+  <script src="https://kit.fontawesome.com/0a4b184238.js" crossorigin="anonymous"></script>
+  <script src="https://js.arcgis.com/4.18/"></script>
+  <script>
+    require([
+      "esri/views/MapView",
+      "esri/widgets/Directions",
+      "esri/Graphic",
+      "esri/widgets/Legend",
+      "esri/widgets/LayerList",
+      "esri/WebMap",
+    ], function (MapView, Directions, Graphic, Legend, LayerList, WebMap) {
+
+      var map = new WebMap({
+        portalItem: {
+          id: "db09cbbb8376431eb3b5c706b3de2ec8"
+        }
+      });
+
+      var view = new MapView({
+        // center: [112.730, -7.262], // longitude, latitude
+        zoom: 13,
+        container: "viewDiv",
+        map: map
+      });
+
+      var directionsWidget = new Directions({
+        view: view,
+        // Point the URL to a valid route service that uses an
+        // ArcGIS Online hosted service proxy instead of the default service
+        routeServiceUrl:
+          "https://utility.arcgis.com/usrsvcs/appservices/yXlaX3E0y5tafLCJ/rest/services/World/Route/NAServer/Route_World"
+      });
+
+      view.on("click", function (event) {
+
+        const toggleButton = document.getElementById('toggle_button');
+        if (toggleButton.classList.contains('active')) {
+          view.popup.open({
+            // Set the popup's title to the coordinates of the clicked location
+            title: "Add new event",
+            location: event.mapPoint, // Set the location of the popup to the clicked location
+            content: generateForm(event.mapPoint.latitude, event.mapPoint.longitude),
+          });
+
+        }
+      });
+
+      var generateForm = (lat, lng) => {
+        var form = document.createElement("form");
+
+        // Type
+        var formGroup = document.createElement("div");
+        formGroup.className = "form-group";
+        var label = document.createElement("label");
+        label.innerHTML = "Type";
+        label.for = "frm_type";
+        var input = document.createElement("input");
+        input.id = 'frm_type';
+        input.name = 'frm_type';
+        input.type = "text";
+        input.className = "form-control"
+        formGroup.appendChild(label);
+        formGroup.appendChild(input);
+        form.appendChild(formGroup);
+
+        /**
+         * <div class='form=group'>
+         *  <label for="frm_type">Type </label>
+         *  <input type="text" id="frm_type" name="frm_type" class="form-control"/>
+         * </div>
+        */
+
+        // Address
+        var formGroup = document.createElement("div");
+        formGroup.className = "form-group";
+        var label = document.createElement("label");
+        label.innerHTML = "Address";
+        label.for = "frm_addr";
+        var input = document.createElement("input");
+        input.id = 'frm_addr';
+        input.name = 'frm_addr';
+        input.type = "text";
+        input.value = `${lat} , ${lng}`;
+        input.readOnly = true;
+        input.className = "form-control"
+        formGroup.appendChild(label);
+        formGroup.appendChild(input);
+        form.appendChild(formGroup);
+
+        // Duration
+        var formGroup = document.createElement("div");
+        formGroup.className = "form-group";
+        var label = document.createElement("label");
+        label.innerHTML = "Duration";
+        label.for = "frm_duration";
+        var input = document.createElement("input");
+        input.id = 'frm_duration';
+        input.name = 'frm_duration';
+        input.type = "number";
+        input.placeholder = "minutes";
+        input.className = "form-control"
+        formGroup.appendChild(label);
+        formGroup.appendChild(input);
+        form.appendChild(formGroup);
+
+        var formGroup = document.createElement("div");
+        formGroup.className = "form-group";
+        var submitButton = document.createElement('button');
+        submitButton.id = "frm_submit";
+        submitButton.className = 'btn btn-primary';
+        submitButton.innerHTML = "Submit"
+        submitButton.addEventListener("click", postAccident);
+        formGroup.appendChild(submitButton);
+        form.appendChild(formGroup);
+
+        return form;
+      }
+
+      function getFormData() {
+        const formData = new FormData()
+        formData.append("type", document.getElementById('frm_type').value);
+        formData.append("address", document.getElementById('frm_addr').value);
+        formData.append("duration", document.getElementById('frm_duration').value);
+        const data = new URLSearchParams(formData);
+        return data;
+      }
+
+      var postAccident = (e) => {
+        e.preventDefault();
+        fetch("http://localhost/sig/post.php", {
+          method: 'POST',
+          headers: {
+            'Content-Type': 'application/x-www-form-urlencoded',
+            'Accept': 'application/json'
+          },
+          body: getFormData(),
+        })
+          .then(response => response.json())
+          .then(data => {
+            console.log('Success:', data);
+            view.popup.close();
+            reloadGraphics();
+          })
+          .catch((error) => {
+            console.error(error);
+          });
+      }
+
+      function reloadGraphics() {
+        view.graphics.removeAll();
+        var tableData = document.querySelectorAll(".accident_row");
+        // console.log(tableData);
+        if (tableData.length) {
+          tableData.forEach(elms => elms.remove());
+        }
+        fetch('http://localhost/sig/get.php')
+          .then(response => response.json())
+          .then(datas => {
+            datas.forEach(data => {
+              // console.log(data);
+              const coordinates = data.address.split(" , ");
+              // console.log(cooordinates);
+              const point = {
+                type: 'point',
+                latitude: coordinates[0],
+                longitude: coordinates[1],
+              }
+
+              var markerSymbol = {
+                type: "simple-marker",  // autocasts as new SimpleMarkerSymbol()
+                color: [255, 0, 0],
+                size: "10px"
+              };
+
+              var pointGraphic = new Graphic({
+                geometry: point,
+                symbol: markerSymbol
+              });
+              view.graphics.add(pointGraphic);
+              // console.log(pointGraphic);
+
+              var tableBody = document.getElementById('accident_table_body');
+              var tr = document.createElement('tr');
+              tr.className = 'accident_row';
+              var td = document.createElement('td');
+              td.innerHTML = data.type;
+              tr.appendChild(td);
+              var td = document.createElement('td');
+              td.innerHTML = data.address;
+              tr.appendChild(td);
+              var td = document.createElement('td');
+              td.innerHTML = data.duration;
+              tr.appendChild(td);
+              tr.addEventListener('click', () => {
+                // console.log('clicked');
+                // console.log(point);
+                // view.centerAt(point)
+                view.center = [coordinates[1], coordinates[0]];
+              });
+              var td = document.createElement('td');
+              var deleteButton = document.createElement('button');
+              deleteButton.innerHTML = 'Delete';
+              deleteButton.className = "btn btn-danger";
+              deleteButton.addEventListener('click', () => {
+                const formData = new FormData()
+                formData.append("type", data.type);
+                formData.append("address", data.address);
+                formData.append("duration", data.duration);
+                const payload = new URLSearchParams(formData);
+                fetch("http://localhost/sig/delete.php", {
+                  method: 'POST',
+                  headers: {
+                    'Content-Type': 'application/x-www-form-urlencoded',
+                    'Accept': 'application/json'
+                  },
+                  body: payload,
+                })
+                  .then(response => response.json())
+                  .then(data => {
+                    console.log('Success:', data);
+                    reloadGraphics();
+                  })
+                  .catch((error) => {
+                    console.error(error);
+                  });
+
+              })
+              td.appendChild(deleteButton);
+              tr.appendChild(td);
+              tableBody.appendChild(tr);
+            })
+          });
+      }
+
+
+      // Base widget
+      var accidentWidget = document.createElement("div");
+      accidentWidget.id = "coordsWidget";
+      accidentWidget.className = "esri-widget esri-component";
+      accidentWidget.style.height = "250px";
+      accidentWidget.style.width = "300px";
+      accidentWidget.style.textAlign = "center";
+      accidentWidget.style.overflow = "auto";
+
+      var table = document.createElement('table');
+      table.className = "table table-responsive";
+      table.id = "accident_table";
+      var thead = document.createElement('thead');
+      var tbody = document.createElement('tbody');
+      tbody.id = "accident_table_body";
+      var tr = document.createElement("tr")
+      var td = document.createElement("td");
+      td.innerHTML = "Type";
+      tr.appendChild(td);
+      var td = document.createElement("td");
+      td.innerHTML = "Address";
+      tr.appendChild(td);
+      var td = document.createElement("td");
+      td.innerHTML = "Duration";
+      tr.appendChild(td);
+      var td = document.createElement("td");
+      td.innerHTML = "Action";
+      tr.appendChild(td);
+      thead.appendChild(tr);
+      table.appendChild(thead);
+      table.appendChild(tbody);
+      accidentWidget.appendChild(table);
+
+      var toggleButton = document.createElement("button");
+      toggleButton.innerHTML = '<i class="fas fa-plus"></i>';
+      toggleButton.className = 'btn btn-light';
+      toggleButton.id = 'toggle_button';
+      toggleButton.addEventListener("click", () => {
+        const toggleButton = document.getElementById('toggle_button');
+        if (toggleButton.classList.contains('active')) {
+          toggleButton.classList.remove('active');
+          toggleButton.ariaPressed = false;
+          view.popup.autoOpenEnabled = true;
+        } else {
+          toggleButton.classList.add('active');
+          toggleButton.ariaPressed = true;
+          view.popup.autoOpenEnabled = false;
+        }
+      })
+      accidentWidget.appendChild(toggleButton);
+
+      var layerList = new LayerList({
+        view: view
+      });
+
+      var legend = new Legend({
+        view: view
+      });
+
+      view.ui.add(layerList, {
+        position: "top-left"
+      });
+
+      view.ui.add(legend, {
+        position: "bottom-left"
+      });
+
+      // Add the Directions widget to the top right corner of the view
+      view.ui.add(directionsWidget, {
+        position: "top-right"
+      });
+
+      // Add the Directions widget to the top right corner of the view
+      view.ui.add(accidentWidget, {
+        position: "bottom-right"
+      });
+
+      reloadGraphics();
+    });
+  </script>
+</head>
+
+<body>
+  <div id="viewDiv"></div>
+</body>
+
+</html>
